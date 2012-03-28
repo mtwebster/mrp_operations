@@ -578,53 +578,6 @@ mrp_operations_operation()
 
 
 
-class mrp_production(osv.osv):
-    _inherit = 'mrp.production'
-
-
-  def action_compute1(self, cr, uid, ids, properties=[], context=None):
-        """ Computes bills of material of a product.
-        @param properties: List containing dictionaries of properties.
-        @return: No. of products.
-        """
-        results = []
-        bom_obj = self.pool.get('mrp.bom')
-        uom_obj = self.pool.get('product.uom')
-        prod_line_obj = self.pool.get('mrp.production.product.line')
-        workcenter_line_obj = self.pool.get('mrp.production.workcenter.line')
-        for production in self.browse(cr, uid, ids):
-            cr.execute('delete from mrp_production_product_line where production_id=%s', (production.id,))
-            cr.execute('delete from mrp_production_workcenter_line where production_id=%s', (production.id,))
-            bom_point = production.bom_id
-            bom_id = production.bom_id.id
-            if not bom_point:
-                bom_id = bom_obj._bom_find(cr, uid, production.product_id.id, production.product_uom.id, properties)
-                if bom_id:
-                    bom_point = bom_obj.browse(cr, uid, bom_id)
-                    routing_id = bom_point.routing_id.id or False
-                    self.write(cr, uid, [production.id], {'bom_id': bom_id, 'routing_id': routing_id})
-            if not bom_id:
-                raise osv.except_osv(_('Error'), _("Couldn't find a bill of material for this product."))
-            factor = uom_obj._compute_qty(cr, uid, production.product_uom.id, production.product_qty, bom_point.product_uom.id)
-            res = bom_obj._bom_explode(cr, uid, bom_point, factor / bom_point.product_qty, properties, routing_id=production.routing_id.id)
-            results = res[0]
-            results2 = res[1]
-            for line in results:
-                line['production_id'] = production.id
-                prod_line_obj.create(cr, uid, line)
-            for line in results2:
-                line['production_id'] = production.id
-                line['order_name'] = production.x_order_name
-                line['order_due'] = production.x_order_due
-                workcenter_line_obj.create(cr, uid, line)
-        return len(results)
-
-
-
-
-
-mrp_production()
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
