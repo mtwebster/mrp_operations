@@ -275,11 +275,19 @@ class mrp_production(osv.osv):
             dt_end = datetime.strptime(po.date_planned, '%Y-%m-%d %H:%M:%S')
             if not po.date_start:
                 self.write(cr, uid, [po.id], {
-                    'date_start': po.date_planned
+                    'date_start': po.date_planned,
+                    'order_name': po.x_order_name,
+                    'order_due': po.x_order_due
                 }, context=context, update=False)
             old = None
             for wci in range(len(po.workcenter_lines)):
                 wc  = po.workcenter_lines[wci]
+
+                self.pool.get('mrp.production.workcenter.line').write(cr, uid, [wc.id],  {
+                        'order_name': po.x_order_name,
+                        'order_due': po.x_order_due
+                    }, context=context, update=False)
+
                 if (old is None) or (wc.sequence>old):
                     dt = dt_end
                 if context.get('__last_update'):
@@ -382,6 +390,10 @@ class mrp_production(osv.osv):
         result = super(mrp_production, self).action_compute(cr, uid, ids, properties=properties, context=context)
         self._compute_planned_workcenter(cr, uid, ids, context=context)
         return result
+
+    def action_recompute(self, cr, uid, ids, properties=[], context=None):
+        self._compute_planned_workcenter(cr, uid, ids, context=context)
+        return 
 
 mrp_production()
 
