@@ -48,8 +48,8 @@
         <field name="arch" type="xml">
             <tree string="Work Orders" colors="gray:state in ('done','cancel');black:state in ('draft','startworking') and date_planned&gt;=current_date;red:date_planned&lt;current_date and state in ('draft', 'confirmed', 'ready')">
                 <field name="production_id"/>
-                <field name="x_order_name"/>
-                <field name="date_planned"/>
+                <field name="order_name"/>
+                <field name="order_due"/>
                 <field name="product"/>
                 <field name="qty"/>
                 <field name="uom"/>
