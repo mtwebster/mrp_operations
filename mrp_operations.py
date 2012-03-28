@@ -275,9 +275,7 @@ class mrp_production(osv.osv):
             dt_end = datetime.strptime(po.date_planned, '%Y-%m-%d %H:%M:%S')
             if not po.date_start:
                 self.write(cr, uid, [po.id], {
-                    'date_start': po.date_planned,
-                    'order_name': po.x_order_name,
-                    'order_due': po.x_order_due
+                    'date_start': po.date_planned
                 }, context=context, update=False)
             old = None
             for wci in range(len(po.workcenter_lines)):
