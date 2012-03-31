@@ -214,7 +214,17 @@
         <field name="model">mrp.production.workcenter.line</field>
         <field name="type">gantt</field>
         <field name="arch" type="xml">
-            <gantt date_delay="hour" date_start="date_planned" default_group_by="production_id">
+            <gantt date_delay="hour" date_start="date_planned" default_group_by="workcenter_id" color="state">
+            </gantt>
+        </field>
+    </record>
+
+    <record id="workcenter_line_resource_gantt2" model="ir.ui.view">
+        <field name="name">mrp.production.workcenter.line.resource.gantt2</field>
+        <field name="model">mrp.production.workcenter.line</field>
+        <field name="type">gantt</field>
+        <field name="arch" type="xml">
+            <gantt date_delay="hour" date_start="date_planned" default_group_by="production_id" color="state">
             </gantt>
         </field>
     </record>
