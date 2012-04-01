@@ -23,9 +23,8 @@ from osv import fields
 from osv import osv
 import netsvc
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from tools.translate import _
-
 #----------------------------------------------------------
 # Work Centers
 #----------------------------------------------------------
@@ -268,26 +267,28 @@ class mrp_production(osv.osv):
         """ Computes planned and finished dates for work order.
         @return: Calculated date
         """
+        gantt_buffer = 4
         dt_end = datetime.now()
         if context is None:
             context = {}
         for po in self.browse(cr, uid, ids, context=context):
-            dt_end = datetime.strptime(po.date_planned, '%Y-%m-%d %H:%M:%S')
+            wk_startdate = datetime.strptime(po.x_order_due, '%Y-%m-%d')
+            wk_startdate += timedelta(hours=-(po.hour_total+(len(po.workcenter_lines)*gantt_buffer)))
+            dt_end = wk_startdate
             if not po.date_start:
                 self.write(cr, uid, [po.id], {
-                    'date_start': po.date_planned
+                    'date_start': wk_startdate
                 }, context=context, update=False)
             old = None
             for wci in range(len(po.workcenter_lines)):
                 wc  = po.workcenter_lines[wci]
-
                 self.pool.get('mrp.production.workcenter.line').write(cr, uid, [wc.id],  {
                         'order_name': po.x_order_name,
                         'order_due': po.x_order_due
                     }, context=context, update=False)
 
                 if (old is None) or (wc.sequence>old):
-                    dt = dt_end
+                    dt = dt_end+timedelta(hours=gantt_buffer)
                 if context.get('__last_update'):
                     del context['__last_update']
                 if (wc.date_planned < dt.strftime('%Y-%m-%d %H:%M:%S')) or mini:
@@ -585,9 +586,6 @@ class mrp_operations_operation(osv.osv):
     }
 
 mrp_operations_operation()
-
-
-
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
 
