@@ -273,12 +273,12 @@ class mrp_production(osv.osv):
             context = {}
         for po in self.browse(cr, uid, ids, context=context):
             wk_startdate = datetime.strptime(po.x_order_due, '%Y-%m-%d')
-            wk_startdate += timedelta(hours=-(po.hour_total+(len(po.workcenter_lines)*gantt_buffer)))
+            time_diff = datetime.strptime(po.date_finished,'%Y-%m-%d %H:%M:%S')-datetime.strptime(po.date_start,'%Y-%m-%d %H:%M:%S')
+            wk_startdate -= time_diff
             dt_end = wk_startdate
-            if not po.date_start:
-                self.write(cr, uid, [po.id], {
-                    'date_start': wk_startdate
-                }, context=context, update=False)
+            self.write(cr, uid, [po.id], {
+                'date_start': wk_startdate.strftime('%Y-%m-%d %H:%M:%S')
+            }, context=context, update=False)
             old = None
             for wci in range(len(po.workcenter_lines)):
                 wc  = po.workcenter_lines[wci]
@@ -302,8 +302,7 @@ class mrp_production(osv.osv):
                     wc.hour or 0.0
                 )
                 if i:
-                    dt_end = max(dt_end, i[-1][1])
-
+                    dt_end=max(dt_end, i[-1][1]+timedelta(hours=gantt_buffer))
                 old = wc.sequence or 0
             super(mrp_production, self).write(cr, uid, [po.id], {
                 'date_finished': dt_end
@@ -365,8 +364,8 @@ class mrp_production(osv.osv):
             for po in self.browse(cr, uid, ids, context=context):
                 direction[po.id] = cmp(po.date_start, vals.get('date_start', False))
         result = super(mrp_production, self).write(cr, uid, ids, vals, context=context)
-        if (vals.get('workcenter_lines', False) or vals.get('date_start', False)) and update:
-            self._compute_planned_workcenter(cr, uid, ids, context=context, mini=mini)
+ #       if (vals.get('workcenter_lines', False) or vals.get('date_start', False)) and update:
+ #           self._compute_planned_workcenter(cr, uid, ids, context=context, mini=mini)
         for d in direction:
             if direction[d] == 1:
                 # the production order has been moved to the passed
