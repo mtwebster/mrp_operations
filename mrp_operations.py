@@ -291,21 +291,18 @@ class mrp_production(osv.osv):
                     dt = dt_end+timedelta(hours=gantt_buffer)
                 if context.get('__last_update'):
                     del context['__last_update']
-                if (wc.date_planned < dt.strftime('%Y-%m-%d %H:%M:%S')) or mini:
-                    self.pool.get('mrp.production.workcenter.line').write(cr, uid, [wc.id],  {
-                        'date_planned': dt.strftime('%Y-%m-%d %H:%M:%S')
-                    }, context=context, update=False)
-                    i = self.pool.get('resource.calendar').interval_get(
-                        cr,
-                        uid,
-                        wc.workcenter_id.calendar_id and wc.workcenter_id.calendar_id.id or False,
-                        dt,
-                        wc.hour or 0.0
-                    )
-                    if i:
-                        dt_end = max(dt_end, i[-1][1])
-                else:
-                    dt_end = datetime.strptime(wc.date_planned_end, '%Y-%m-%d %H:%M:%S')
+                self.pool.get('mrp.production.workcenter.line').write(cr, uid, [wc.id],  {
+                    'date_planned': dt.strftime('%Y-%m-%d %H:%M:%S')
+                }, context=context, update=False)
+                i = self.pool.get('resource.calendar').interval_get(
+                    cr,
+                    uid,
+                    wc.workcenter_id.calendar_id and wc.workcenter_id.calendar_id.id or False,
+                    dt,
+                    wc.hour or 0.0
+                )
+                if i:
+                    dt_end = max(dt_end, i[-1][1])
 
                 old = wc.sequence or 0
             super(mrp_production, self).write(cr, uid, [po.id], {
