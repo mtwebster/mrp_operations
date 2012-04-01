@@ -273,7 +273,10 @@ class mrp_production(osv.osv):
             context = {}
         for po in self.browse(cr, uid, ids, context=context):
             wk_startdate = datetime.strptime(po.x_order_due, '%Y-%m-%d')
-            time_diff = datetime.strptime(po.date_finished,'%Y-%m-%d %H:%M:%S')-datetime.strptime(po.date_start,'%Y-%m-%d %H:%M:%S')
+            try:
+                time_diff = datetime.strptime(po.date_finished,'%Y-%m-%d %H:%M:%S')-datetime.strptime(po.date_start,'%Y-%m-%d %H:%M:%S')
+            except TypeError:
+                time_diff = timedelta(hours=1)
             wk_startdate -= time_diff
             dt_end = wk_startdate
             self.write(cr, uid, [po.id], {
